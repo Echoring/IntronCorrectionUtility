@@ -5,7 +5,6 @@ Intron Correction Utility step 3: Adjust gene record according to changed transc
 
 import sys
 import argparse
-import concurrent.futures
 from collections import defaultdict
 from typing import Dict, List, Tuple
 import copy
@@ -599,8 +598,6 @@ def integrate(inarg=None):
                        help='Generate output file named (default: ICU.integrated.gff3)')
     parser.add_argument('--rename', type=str, default='',
                        help='Rename all gene and its child record ID begin with prefix+number; if not set, join original ID with operation (default: not set)')
-    parser.add_argument('-t', '--threads', type=int, default=1,
-                        help='Threads limit to use. If set as 0, will use as much as possible (default: 1); Max vaild thread equals sequence counts')
     parser.add_argument('--debug', default=False, action='store_true',
                         help='Print DEBUG level log')
     
@@ -621,13 +618,10 @@ def integrate(inarg=None):
     logger.debug("ICU_integrate started")
     logger.debug("="*60)
     
-    num_threads = os.cpu_count() if args.threads == 0 else args.threads
-    
     logger.debug(f"Input: {args.fixed_gff3}")
     logger.debug(f"Options:")
     logger.debug(f"  - Output: {args.out}")
     logger.debug(f"  - Rename prefix: {args.rename}")
-    logger.debug(f"  - Threads: {num_threads}")      
     logger.debug(f"  - debug log: {args.debug}")
     
     # Main process
@@ -642,26 +636,15 @@ def integrate(inarg=None):
             logger.error("No sequence found.")
             sys.exit(1)
         
-        # Multi-threading each sequence
+        # Process each sequence
         processors: dict[str, SeqProcessor] = {}
-
-        actual_threads = min(num_threads, len(seqidlist))
-        logger.debug(f"Actual threads used: {actual_threads}")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=actual_threads) as executor:
-            future_to_seq = {
-                executor.submit(process_Seq, seqid, processor): seqid # Core
-                for seqid, processor in seqid2processor.items()
-            }
-            
-            for future in concurrent.futures.as_completed(future_to_seq):
-                seqid = future_to_seq[future]
-                try:
-                    processor = future.result()
-                    processors[seqid] = processor
-                except Exception as e:
-                    logger.exception(f"Unexcepted error occurred in processing {seqid}: {e}")
-                    sys.exit(1)
                     
+        for seqid, processor in seqid2processor.items():
+            try:
+                processors[seqid] = process_Seq(seqid, processor)
+            except:
+                logger.exception(f"Unexcepted error occurred in processing {seqid}: {e}")
+                sys.exit(1)
 
         # Write output
         logger.debug(f'Writing output file {args.out} ...')

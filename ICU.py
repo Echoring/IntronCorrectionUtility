@@ -50,8 +50,8 @@ def main():
                         help='Rename all gene and its child record ID begin with prefix+number; if not set, join original ID with operation (default: not set)')
         pipeparser.add_argument('--prefix', type=str, default='ICU',
                         help='Generate output file named started with (default: ICU)')
-        pipeparser.add_argument('-t', '--threads', type=str, default='1',
-                        help='Threads limit to use. If set as 0, will use as much as possible (default: 1)')
+        pipeparser.add_argument('-p', '--process', type=str, default='1',
+                        help='Process limit for stringtie and portcullis.  If set as 0, will use as much as possible (default: 1)')
         pipeparser.add_argument('--debug', default=False, action='store_true',
                         help='Print DEBUG level logs')
         
@@ -67,7 +67,7 @@ def main():
             [pipeargs.genome_fasta, pipeargs.input_gff3] + pipeargs.bam_files + 
             ['--min-junc', pipeargs.min_junc] +
             ['--prefix', pipeargs.prefix] +
-            ['-t', pipeargs.threads] +
+            ['-p', pipeargs.process] +
             ['--debug'] if pipeargs.debug else [] +
             ['--portcullis', pipeargs.portcullis] +
             ['--stringtie', pipeargs.stringtie] +
@@ -78,14 +78,12 @@ def main():
             [portcullis_gtf, stringtie_gtf, pipeargs.genome_fasta, pipeargs.input_gff3] +
             ['-o', f'{pipeargs.prefix}.intermediate.gff3'] +
             ['--min-orf-length', pipeargs.min_orf_length] +
-            ['-t', pipeargs.threads] +
             ['--debug'] if pipeargs.debug else []
         )
         corrected_gff3 = ICU_integrate.integrate(
             [intermediate_gff3] +
             ['-o', f'{pipeargs.prefix}.integrated.gff3'] +
             ['--rename', pipeargs.rename] +
-            ['-t', pipeargs.threads] +
             ['--debug'] if pipeargs.debug else []
         )
         ICU_stat.stat(

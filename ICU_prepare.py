@@ -89,14 +89,14 @@ def run_command(cmd, description, shell=False):
         logger.exception(f"subprocess {description} failed (unexpected error), error info: {e}")
         raise RuntimeError(f"subprocess {description} failed") from e
 
-def run_stringtie(bam_file, min_junc, prefix, threads, stringtie_path):
+def run_stringtie(bam_file, min_junc, prefix, process, stringtie_path):
     """Return stringtie.gtf"""
     output_gtf = f"{prefix}_{os.path.basename(bam_file)}.stringtie.gtf"
     cmd = [
         stringtie_path,
         bam_file,
         '-o', output_gtf,
-        '-p', str(threads),
+        '-p', str(process),
         '--conservative',
         '-l', f'{prefix}_STRG',
         '-j', str(min_junc)
@@ -108,14 +108,14 @@ def run_stringtie(bam_file, min_junc, prefix, threads, stringtie_path):
     
     return output_gtf
 
-def run_stringtie_pipeline(bam_files, min_junc, prefix, threads, stringtie_path):
+def run_stringtie_pipeline(bam_files, min_junc, prefix, process, stringtie_path):
     "Run stringtie for each bam input, then run stringtie merge, return merged.gtf"
     allgtf = []
     merged_gtf = f"{prefix}.merged.stringtie.gtf"
 
     if not os.path.exists(merged_gtf):
         for bam in bam_files:
-            onegtf = run_stringtie(bam, min_junc, prefix, threads, stringtie_path)
+            onegtf = run_stringtie(bam, min_junc, prefix, process, stringtie_path)
             allgtf.append(onegtf)
         cmd = [
             stringtie_path,
@@ -132,7 +132,7 @@ def run_stringtie_pipeline(bam_files, min_junc, prefix, threads, stringtie_path)
     return merged_gtf
     
 
-def run_portcullis(genome_fasta, bam_files, min_junc, prefix, threads, portcullis_path):
+def run_portcullis(genome_fasta, bam_files, min_junc, prefix, process, portcullis_path):
     """
     Run portcullis full
     return output folder
@@ -140,7 +140,7 @@ def run_portcullis(genome_fasta, bam_files, min_junc, prefix, threads, portculli
     outfolder = f'{prefix}_portcullis_out'
     cmd = [
         portcullis_path, 'full',
-        '-t', str(threads),
+        '-t', str(process),
         '-o', f'{prefix}_portcullis_out',
         '--min_cov', str(min_junc),
         genome_fasta
@@ -197,12 +197,12 @@ def run_junctools(annotation_gtf, portcullis_out, prefix, junctools_path):
     return output_gtf
 
 def run_portcullis_pipeline(genome_fasta, annotation_gff3, bam_files, min_junc, prefix,
-                           threads, portcullis_path, gffread_path, junctools_path):
+                           process, portcullis_path, gffread_path, junctools_path):
     """
     Run portcullis full, gffread, junctools gtf markup, 
     return portcullis_out(folder), annotation.gtf, markup.gtf
     """
-    portcullis_out = run_portcullis(genome_fasta, bam_files, min_junc, prefix, threads, portcullis_path)
+    portcullis_out = run_portcullis(genome_fasta, bam_files, min_junc, prefix, process, portcullis_path)
     annotation_gtf = run_gffread(annotation_gff3, prefix, gffread_path)
     markup_gtf = run_junctools(annotation_gtf, portcullis_out, prefix, junctools_path)
     
@@ -230,8 +230,8 @@ def prepare(inarg=None):
                        help='Ignore splice-alignment that supported by lower than (default: 10) read pairs')
     parser.add_argument('--prefix', type=str, default='ICU',
                        help='Generate output file named started with (default: ICU)')
-    parser.add_argument('-t', '--threads', type=int, default=1,
-                       help='Threads limit to use for stringtie. If set as 0, will use as much as possible (default: 1)')
+    parser.add_argument('-p', '--process', type=int, default=1,
+                       help='Process limit to use for stringtie and portcullis. If set as 0, will use as much as possible (default: 1)')
     parser.add_argument('--debug', default=False, action='store_true',
                        help='Print DEBUG level logs')
     
@@ -265,7 +265,7 @@ def prepare(inarg=None):
     logger.debug(f"Options:")  
     logger.debug(f"  - minimal junction-support read pairs: {args.min_junc}")
     logger.debug(f"  - prefix: {args.prefix}")
-    logger.debug(f"  - threads: {args.threads}")
+    logger.debug(f"  - process: {args.process}")
     logger.debug(f"  - debug log: {args.debug}")
         
     # Check dependency
@@ -299,9 +299,9 @@ def prepare(inarg=None):
     logger.debug("="*60)
     
     try:
-        num_threads = os.cpu_count() if args.threads == 0 else args.threads
-        stringtie_gtf = run_stringtie_pipeline(args.bam_files, args.min_junc, args.prefix, num_threads, stringtie_path)
-        portcullis_out, annotation_gtf, markup_gtf = run_portcullis_pipeline(args.genome_fasta, args.input_gff3, args.bam_files, args.min_junc, args.prefix, num_threads, portcullis_path, gffread_path, junctools_path)
+        num_process = os.cpu_count() if args.process == 0 else args.process
+        stringtie_gtf = run_stringtie_pipeline(args.bam_files, args.min_junc, args.prefix, num_process, stringtie_path)
+        portcullis_out, annotation_gtf, markup_gtf = run_portcullis_pipeline(args.genome_fasta, args.input_gff3, args.bam_files, args.min_junc, args.prefix, num_process, portcullis_path, gffread_path, junctools_path)
             
     except Exception as e:
         logger.exception(f"Unexpected error oucurred in main process: {e}")

@@ -6,7 +6,6 @@ Intron Correction Utility step 2: Fix invalid intron in transcripts by trusted a
 import re
 import sys
 import argparse
-import concurrent.futures
 import logging
 import os
 from collections import defaultdict, OrderedDict
@@ -521,8 +520,7 @@ def process_invalid_transcripts(portcullis_file: str,
                                 genome_file: str,
                                 gff3_file: str,
                                 output_file: str,
-                                min_orf_length: int = 300,
-                                num_threads: int = 1):
+                                min_orf_length: int = 300):
     """Main process"""
     logger.debug("="*60)
     logger.debug("Main process started")
@@ -548,40 +546,24 @@ def process_invalid_transcripts(portcullis_file: str,
     logger.debug(f"Processing invalid transcripts...")
     results = []
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
-        future_to_tid = {
-            executor.submit(
-                process_single_invalid_transcript, 
-                tid, 
-                portcullis_transcripts[tid], 
-                genes, 
-                trusted_transcripts, 
-                trusted_exons, 
-                genome_seq, 
-                min_orf_length
-                ): tid for tid in invalid_transcripts
-            }    
-        
-        processed_count = 0
-        skipped_count = 0
-        
-        for future in concurrent.futures.as_completed(future_to_tid):
-            tid = future_to_tid[future]
-            try:
-                result = future.result()
-                if result:
-                    gene_id, new_records, used_tid, found_strand = result
-                    if gene_id:
-                        if new_records:
-                            results.append((tid, gene_id, new_records, used_tid, found_strand))
-                            processed_count += 1
-                        else:
-                            skipped_count += 1
-                    else:
-                        skipped_count += 1
-            except Exception as e:
+    processed_count = 0
+    skipped_count = 0
+    
+    for tid in invalid_transcripts:
+        try:
+            result = process_single_invalid_transcript(tid, portcullis_transcripts[tid], genes, trusted_transcripts, trusted_exons, genome_seq, min_orf_length)
+            if result:
+                gene_id, new_records, used_tid, found_strand = result
+                if gene_id and new_records:
+                    results.append((tid, gene_id, new_records, used_tid, found_strand))
+                    processed_count += 1
+                else:
+                    skipped_count += 1
+            else:
                 skipped_count += 1
-                logger.exception(f"Process {tid}: skip process for unexpected error: {e}")
+        except Exception as e:
+            skipped_count += 1
+            logger.exception(f"Process {tid}: skip process for unexpected error: {e}")
     
     logger.debug(f"All subprocess Completed.")
     logger.debug(f"  - {processed_count} invalid transcripts fixed.")
@@ -652,8 +634,6 @@ def fix(inarg=None):
                        help='Generate output file named (default: ICU.intermediate.gff3)')
     parser.add_argument('--min-orf-length', type=int, default=300,
                        help='Avoid using ORF on trusted transcript shorter than (default: 300) bp to replace invalid transcript')
-    parser.add_argument('-t', '--threads', type=int, default=1,
-                       help='Threads limit to use. If set as 0, will use as much as possible (default: 1)')
     parser.add_argument('--debug', default=False, action='store_true',
                        help='Print DEBUG level logs')
     args = parser.parse_args() if inarg is None else parser.parse_args(inarg)
@@ -694,12 +674,9 @@ def fix(inarg=None):
     logger.debug(f"  - Genome FASTA: {args.genome_fasta}")
     logger.debug(f"  - Genome annotation GFF3: {args.input_gff3}")
         
-    num_threads = os.cpu_count() if args.threads == 0 else args.threads  
-
     logger.debug(f"Options:")
     logger.debug(f"  - Output file: {args.out}")
     logger.debug(f"  - Minimal ORF length: {args.min_orf_length}")
-    logger.debug(f"  - Threads: {num_threads}")      
     logger.debug(f"  - debug log: {args.debug}")
     
     # Main process entry
@@ -710,8 +687,7 @@ def fix(inarg=None):
             args.genome_fasta,
             args.input_gff3,
             args.out,
-            args.min_orf_length,
-            num_threads
+            args.min_orf_length
         )
         return args.out
 
