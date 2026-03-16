@@ -94,13 +94,13 @@ class SeqProcessor:
             # process all child
             stack = [(recordid, newgid, defaultdict(int))]
             while stack:
-                current_original_id, current_new_id, counters = stack.pop()
+                current_original_id, current_new_id, counters = stack.pop(0)
                 
                 children = self.features_by_parent.get(current_original_id, {})
                 if not children:
                     continue
                 sorted_children = sorted(children.items(), key=lambda x: (x[1].start, type_priority.get(x[1].type.lower(), 999)))
-                for child_id, child_feat in reversed(sorted_children):
+                for child_id, child_feat in sorted_children:
                     counters[child_feat.type] += 1
                     new_child_id = f'{current_new_id}.{child_feat.type}{counters[child_feat.type]}' if current_new_id != '' else ''
                     output_lines.append(format_record(child_feat, new_child_id, current_new_id))
