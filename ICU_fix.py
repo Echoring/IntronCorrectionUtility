@@ -452,13 +452,13 @@ def create_corrected_transcript_records(invalid_tid: str,
             cds_id = f"{invalid_tid}.CDS{i}"
             cds_record = f"{trusted_info.seqid}\t{trusted_info.source}\tCDS\t{cds_start}\t{cds_end}\t.\t{found_strand}\t{nextphase}\tID={cds_id};Parent={invalid_tid};"
             records.append(cds_record)
-            nextphase = - (nextphase + cds_end - cds_start + 1) % 3
+            nextphase = - (cds_end - cds_start + 1 - nextphase) % 3
     else:
         for i, (cds_start, cds_end) in reversed(list(enumerate(exon_cds_pairs, 1))):
             cds_id = f"{invalid_tid}.CDS{i}"
             cds_record = f"{trusted_info.seqid}\t{trusted_info.source}\tCDS\t{cds_start}\t{cds_end}\t.\t{found_strand}\t{nextphase}\tID={cds_id};Parent={invalid_tid};"
             records.append(cds_record)
-            nextphase = - (nextphase + cds_end - cds_start + 1) % 3
+            nextphase = - (cds_end - cds_start + 1 - nextphase) % 3
     
     return records
 
