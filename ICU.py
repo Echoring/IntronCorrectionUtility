@@ -27,12 +27,12 @@ def main():
     
     args = parser.parse_args()
     
-    subcommandref = {'prepare': ICU_prepare.prepare, 'fix': ICU_fix.fix, 'integrate': ICU_integrate.integrate}
+    subcommandref = {'prepare': ICU_prepare.prepare, 'fix': ICU_fix.fix, 'integrate': ICU_integrate.integrate, 'stat': ICU_stat.stat}
     if args.subcommand in subcommandref:
         subcommandref[args.subcommand](args.command)
     elif args.subcommand == 'pipe':
         pipeparser = argparse.ArgumentParser(
-            description='Intron Correction Utility Pipeline', 
+            description='Intron Correction Utility Pipeline v0', 
             formatter_class=argparse.RawTextHelpFormatter
         )
         # Positional
