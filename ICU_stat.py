@@ -144,6 +144,7 @@ def stat(inarg=None):
     '''
     parser = argparse.ArgumentParser(
         description='Intron Correction Utility step 4: Run junctools again and generate statistical data',
+        prog='ICU.py stat',
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     

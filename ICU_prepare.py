@@ -217,6 +217,7 @@ def prepare(inarg=None):
     '''
     parser = argparse.ArgumentParser(
         description='Intron Correction Utility step 1: Run portcullis and stringtie',
+        prog='ICU.py prepare',
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     

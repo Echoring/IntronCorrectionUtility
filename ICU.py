@@ -12,7 +12,8 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Intron Correction Utility', 
+        description='Intron Correction Utility v0.0.2',
+        prog='ICU.py', 
         formatter_class=argparse.RawTextHelpFormatter
         )
     parser.add_argument('subcommand', choices=['prepare', 'fix', 'integrate', 'stat', 'pipe'], help=
@@ -32,7 +33,8 @@ def main():
         subcommandref[args.subcommand](args.command)
     elif args.subcommand == 'pipe':
         pipeparser = argparse.ArgumentParser(
-            description='Intron Correction Utility Pipeline v0', 
+            description='Intron Correction Utility Pipeline', 
+            prog='ICU.py pipe',
             formatter_class=argparse.RawTextHelpFormatter
         )
         # Positional
@@ -68,7 +70,7 @@ def main():
             ['--min-junc', pipeargs.min_junc] +
             ['--prefix', pipeargs.prefix] +
             ['-p', pipeargs.process] +
-            ['--debug'] if pipeargs.debug else [] +
+            (['--debug'] if pipeargs.debug else []) +
             ['--portcullis', pipeargs.portcullis] +
             ['--stringtie', pipeargs.stringtie] +
             ['--junctools', pipeargs.junctools] +
@@ -78,18 +80,18 @@ def main():
             [portcullis_gtf, stringtie_gtf, pipeargs.genome_fasta, pipeargs.input_gff3] +
             ['-o', f'{pipeargs.prefix}.intermediate.gff3'] +
             ['--min-orf-length', pipeargs.min_orf_length] +
-            ['--debug'] if pipeargs.debug else []
+            (['--debug'] if pipeargs.debug else [])
         )
         corrected_gff3 = ICU_integrate.integrate(
             [intermediate_gff3] +
             ['-o', f'{pipeargs.prefix}.integrated.gff3'] +
             ['--rename', pipeargs.rename] +
-            ['--debug'] if pipeargs.debug else []
+            (['--debug'] if pipeargs.debug else [])
         )
         ICU_stat.stat(
             [pipeargs.input_gff3, corrected_gff3, portcullis_out] +
             ['--prefix', pipeargs.prefix] +
-            ['--debug'] if pipeargs.debug else [] +
+            (['--debug'] if pipeargs.debug else []) +
             ['--junctools', pipeargs.junctools] +
             ['--gffread', pipeargs.gffread]
         )

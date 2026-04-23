@@ -586,6 +586,7 @@ def integrate(inarg=None):
     '''
     parser = argparse.ArgumentParser(
         description='Intron Correction Utility step 3: Adjust gene record according to changed transcripts',
+        prog='ICU.py integrate',
         formatter_class=argparse.RawDescriptionHelpFormatter
         )
     

@@ -620,6 +620,7 @@ def fix(inarg=None):
     '''
     parser = argparse.ArgumentParser(
         description='Intron Correction Utility step 2: Fix invalid intron in transcripts by trusted annotation',
+        prog='ICU.py fix',
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     
