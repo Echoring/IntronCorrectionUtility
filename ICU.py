@@ -24,13 +24,12 @@ def main():
     stat      run junctools again and generate statistical data
     pipe      run all four steps as pipeline
 ''')
-    parser.add_argument('command', nargs=argparse.REMAINDER, help='Passed arguments')
     
-    args = parser.parse_args()
+    args, command = parser.parse_known_args()
     
     subcommandref = {'prepare': ICU_prepare.prepare, 'fix': ICU_fix.fix, 'integrate': ICU_integrate.integrate, 'stat': ICU_stat.stat}
     if args.subcommand in subcommandref:
-        subcommandref[args.subcommand](args.command)
+        subcommandref[args.subcommand](command)
     elif args.subcommand == 'pipe':
         pipeparser = argparse.ArgumentParser(
             description='Intron Correction Utility Pipeline', 
@@ -63,7 +62,7 @@ def main():
         pipeparser.add_argument('--junctools', help='junctools executable path, default: $PATH')
         pipeparser.add_argument('--gffread', help='gffread executable path, default: $PATH')
         
-        pipeargs = pipeparser.parse_args(args.command)
+        pipeargs = pipeparser.parse_args(command)
         
         stringtie_gtf, portcullis_gtf, portcullis_out = ICU_prepare.prepare(
             [pipeargs.genome_fasta, pipeargs.input_gff3] + pipeargs.bam_files + 
