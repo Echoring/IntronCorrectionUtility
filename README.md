@@ -7,8 +7,8 @@ A Python-based utility for correcting invalid introns in genome annotations usin
 ### Dependency
 - Python 3.6+ (tested at v3.9.23)
 - [Portcullis](https://github.com/EI-CoreBioinformatics/portcullis) (tested at v1.2.4) - Required for `prepare` and `stat` modules
+- [gffread](https://github.com/gpertea/gffread) (tested at v0.12.7) - Required for `prepare` and `stat` module
 - [StringTie](https://github.com/gpertea/stringtie) (tested at v3.0.3) - Required for `prepare` module
-- [gffread](https://github.com/gpertea/gffread) (tested at v0.12.7) - Required for `prepare` module
 
 ### Installation
 
