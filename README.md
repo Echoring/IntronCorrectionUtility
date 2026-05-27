@@ -204,10 +204,6 @@ optional arguments:
 **Outputs:**
 - `{prefix}.stat` - Statistical reports comparing before/after corrections
 
-## License
-
-TBD
-
 ## Citation
 
 TBD
