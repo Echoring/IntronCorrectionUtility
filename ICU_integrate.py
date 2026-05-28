@@ -558,21 +558,23 @@ def process_Seq(seqid: str, processor: SeqProcessor) -> SeqProcessor:
     logger.debug(f"{seqid}: process started")
     
     processor.rebuild_parent_relationships()
-    
-    # Core process
+    processor.adjust_gene_boundaries()
+
+    processor.process_strand_inconsistency() #1
+    processor.rebuild_parent_relationships()
     processor.adjust_gene_boundaries()
     
-    processor.process_strand_inconsistency()
+    processor.process_gaps_without_features() #2
     processor.rebuild_parent_relationships()
+    processor.adjust_gene_boundaries()
     
-    processor.process_gaps_without_features()
+    processor.merge_overlapping_genes() #3
     processor.rebuild_parent_relationships()
+    processor.adjust_gene_boundaries()
     
-    processor.merge_overlapping_genes()
+    processor.merge_identical_mrna() #4
     processor.rebuild_parent_relationships()
-    
-    processor.merge_identical_mrna()
-    processor.rebuild_parent_relationships()
+    processor.adjust_gene_boundaries()
     
     logger.debug(f"{seqid}: process finished")
     return processor
