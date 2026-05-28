@@ -443,7 +443,6 @@ def get_feature_fingerprint(feature: gffrecord) -> tuple:
         feature.start,
         feature.end,
         feature.strand,
-        feature.phase
     )
     return fingerprint
 
