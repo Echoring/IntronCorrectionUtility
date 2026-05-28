@@ -343,7 +343,7 @@ class SeqProcessor:
             if len(mrnas) <= 1:
                 continue
             
-            # Use record tuple (except source, score and attribute) as key to find duplicates
+            # Use record tuple (except source, score, phase and attribute) as key to find duplicates
             mrna_groups: defaultdict[tuple, list[tuple[str, gffrecord]]] = defaultdict(list)
             for mrnaid, mrna in mrnas.items():
                 feature_fingerprint = get_feature_fingerprint(mrna)
@@ -436,7 +436,7 @@ def generate_unique_id(base_id: List[str], operation: str) -> str:
     return new_id
 
 def get_feature_fingerprint(feature: gffrecord) -> tuple:
-    """return tuple fingerprint, ignore source, score and attributes"""
+    """return tuple fingerprint, ignore source, score, phase and attributes"""
     fingerprint = (
         feature.seqid,
         feature.type.lower(),
