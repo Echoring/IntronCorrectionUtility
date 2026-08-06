@@ -2,6 +2,8 @@
 
 A Python-based utility for correcting invalid introns in genome annotations using RNA-seq splice-alignment data.
 
+![](./ICU.jpg)
+
 ## Getting Started
 
 ### Dependency
